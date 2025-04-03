@@ -14,7 +14,6 @@ echo "
 
 # ====== INPUT ============
 read -p "🔐 Masukkan PRIVATE_KEY: " PRIVATE_KEY
-read -p "🔗 Masukkan Alchemy API Key: " APIKEY_ALCHEMY
 read -p "⛽ Masukkan Gas Price (default: 300): " GAS_PRICE
 GAS_PRICE=${GAS_PRICE:-300}
 read -p "👤 Masukkan USER untuk executor (default: root): " EXECUTOR_USER
@@ -42,25 +41,32 @@ case $RPC_CHOICE in
         ;;
     2)
         echo "🔌 Menggunakan Alchemy RPC"
+        read -p "🔗 Masukkan Alchemy API Key Anda: " APIKEY_ALCHEMY
         RPC_ENDPOINTS='{
           "l2rn": ["https://t3rn-b2n.blockpi.network/v1/rpc/public", "http://b2n.rpc.caldera.xyz/http"],
-          "arbt": ["https://arbitrum-sepolia.g.alchemy.com/v2/$APIKEY_ALCHEMY"],
-          "bast": ["https://base-sepolia.g.alchemy.com/v2/$APIKEY_ALCHEMY"],
-          "blst": ["https://blast-sepolia.g.alchemy.com/v2/$APIKEY_ALCHEMY"],
-          "opst": ["https://opt-sepolia.g.alchemy.com/v2/$APIKEY_ALCHEMY"],
-          "unit": ["https://unichain-sepolia.g.alchemy.com/v2/$APIKEY_ALCHEMY"]
+          "arbt": ["https://arbitrum-sepolia.g.alchemy.com/v2/'"$APIKEY_ALCHEMY"'"],
+          "bast": ["https://base-sepolia.g.alchemy.com/v2/'"$APIKEY_ALCHEMY"'"],
+          "blst": ["https://blast-sepolia.g.alchemy.com/v2/'"$APIKEY_ALCHEMY"'"],
+          "opst": ["https://opt-sepolia.g.alchemy.com/v2/'"$APIKEY_ALCHEMY"'"],
+          "unit": ["https://unichain-sepolia.g.alchemy.com/v2/'"$APIKEY_ALCHEMY"'"]
         }'
         ;;
     3)
         echo "🔌 Menggunakan BlockPI RPC"
-        read -p "🔑 Masukkan API Key BlockPI Anda: " BLOCKPI_KEY
+        echo "Silakan masukkan API Key BlockPI untuk masing-masing jaringan:"
+        read -p "🔑 BlockPI API Key untuk l2rn: " BLOCKPI_L2RN
+        read -p "🔑 BlockPI API Key untuk arbitrum-sepolia: " BLOCKPI_ARBT
+        read -p "🔑 BlockPI API Key untuk base-sepolia: " BLOCKPI_BAST
+        read -p "🔑 BlockPI API Key untuk blast-sepolia: " BLOCKPI_BLST
+        read -p "🔑 BlockPI API Key untuk optimism-sepolia: " BLOCKPI_OPST
+        read -p "🔑 BlockPI API Key untuk unichain-sepolia: " BLOCKPI_UNIT
         RPC_ENDPOINTS='{
-          "l2rn": ["https://t3rn-b2n.blockpi.network/v1/rpc/'"$BLOCKPI_KEY"'"],
-          "arbt": ["https://arbitrum-sepolia.blockpi.network/v1/rpc/'"$BLOCKPI_KEY"'"],
-          "bast": ["https://base-sepolia.blockpi.network/v1/rpc/'"$BLOCKPI_KEY"'"],
-          "blst": ["https://blast-sepolia.blockpi.network/v1/rpc/'"$BLOCKPI_KEY"'"],
-          "opst": ["https://optimism-sepolia.blockpi.network/v1/rpc/'"$BLOCKPI_KEY"'"],
-          "unit": ["https://unichain-sepolia.blockpi.network/v1/rpc/'"$BLOCKPI_KEY"'"]
+          "l2rn": ["https://t3rn-b2n.blockpi.network/v1/rpc/'"$BLOCKPI_L2RN"'"],
+          "arbt": ["https://arbitrum-sepolia.blockpi.network/v1/rpc/'"$BLOCKPI_ARBT"'"],
+          "bast": ["https://base-sepolia.blockpi.network/v1/rpc/'"$BLOCKPI_BAST"'"],
+          "blst": ["https://blast-sepolia.blockpi.network/v1/rpc/'"$BLOCKPI_BLST"'"],
+          "opst": ["https://optimism-sepolia.blockpi.network/v1/rpc/'"$BLOCKPI_OPST"'"],
+          "unit": ["https://unichain-sepolia.blockpi.network/v1/rpc/'"$BLOCKPI_UNIT"'"]
         }'
         ;;
     *)
@@ -75,6 +81,7 @@ case $RPC_CHOICE in
         }'
         ;;
 esac
+
 
 # ====== PREPARE ============
 INSTALL_DIR="/home/$EXECUTOR_USER/t3rn"
