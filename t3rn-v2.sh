@@ -1,6 +1,4 @@
 #!/bin/bash
-
-# ASCII ART
 echo "
 
 .%%..%%...%%%%...%%..%%...%%%%...%%..%%..%%%%%%...........%%%%...%%%%%...%%..%%..%%%%%...%%%%%%...%%%%..
@@ -9,7 +7,6 @@ echo "
 .%%..%%..%%..%%..%%..%%..%%..%%..%%.%%.....%%............%%..%%..%%..%%....%%....%%........%%....%%..%%.
 .%%..%%...%%%%...%%..%%...%%%%...%%..%%..%%%%%%...........%%%%...%%..%%....%%....%%........%%.....%%%%..
 ........................................................................................................
-                               
 "
 
 # ====== INPUT ============
@@ -19,84 +16,68 @@ GAS_PRICE=${GAS_PRICE:-300}
 read -p "👤 Masukkan USER untuk executor (default: root): " EXECUTOR_USER
 EXECUTOR_USER=${EXECUTOR_USER:-root}
 
-# Pilih RPC
+# ====== PILIH RPC ==========
 echo "🔌 Pilih RPC yang akan digunakan:"
 echo "1. Default RPC"
 echo "2. Alchemy RPC"
-echo "3. BlockPI RPC"
+echo "3. BlockPI RPC (multi URL input)"
 read -p "Masukkan pilihan (1/2/3): " RPC_CHOICE
 
-# ====== RPC ENDPOINT BASED ON CHOICE ========
+# ====== HANDLE PILIHAN RPC =======
+if [[ "$RPC_CHOICE" == "2" ]]; then
+    read -p "🔗 Masukkan Alchemy API Key: " APIKEY_ALCHEMY
+    RPC_ENDPOINTS='{
+      "l2rn": ["https://t3rn-b2n.blockpi.network/v1/rpc/public", "http://b2n.rpc.caldera.xyz/http"],
+      "arbt": ["https://arbitrum-sepolia.g.alchemy.com/v2/'"$APIKEY_ALCHEMY"'"] ,
+      "bast": ["https://base-sepolia.g.alchemy.com/v2/'"$APIKEY_ALCHEMY"'"] ,
+      "blst": ["https://blast-sepolia.g.alchemy.com/v2/'"$APIKEY_ALCHEMY"'"] ,
+      "opst": ["https://opt-sepolia.g.alchemy.com/v2/'"$APIKEY_ALCHEMY"'"] ,
+      "unit": ["https://unichain-sepolia.g.alchemy.com/v2/'"$APIKEY_ALCHEMY"'"] 
+    }'
 
-build_rpc_url() {
-    local input=$1
-    local network=$2
-    if [[ $input == https://* ]]; then
-        echo "$input"
-    else
-        echo "https://$network.blockpi.network/v1/rpc/$input"
-    fi
-}
+elif [[ "$RPC_CHOICE" == "3" ]]; then
+    echo "🔌 Masukkan semua URL BlockPI kamu (1 baris per URL), diakhiri dengan baris kosong:"
+    BLOCKPI_URLS=()
+    while read -r line; do
+        [[ -z "$line" ]] && break
+        BLOCKPI_URLS+=("$line")
+    done
 
-case $RPC_CHOICE in
-    1)
-        echo "🔌 Menggunakan Default RPC"
-        RPC_ENDPOINTS='{
-          "l2rn": ["https://t3rn-b2n.blockpi.network/v1/rpc/public", "http://b2n.rpc.caldera.xyz/http"],
-          "arbt": ["https://arbitrum-sepolia.drpc.org"],
-          "bast": ["https://base-sepolia-rpc.publicnode.com"],
-          "blst": ["https://sepolia.blast.io"],
-          "opst": ["https://sepolia.optimism.io"],
-          "unit": ["https://unichain-sepolia.drpc.org"]
-        }'
-        ;;
-    2)
-        echo "🔌 Menggunakan Alchemy RPC"
-        read -p "🔗 Masukkan Alchemy API Key Anda: " APIKEY_ALCHEMY
-        RPC_ENDPOINTS='{
-          "l2rn": ["https://t3rn-b2n.blockpi.network/v1/rpc/public", "http://b2n.rpc.caldera.xyz/http"],
-          "arbt": ["https://arbitrum-sepolia.g.alchemy.com/v2/'"$APIKEY_ALCHEMY"'"],
-          "bast": ["https://base-sepolia.g.alchemy.com/v2/'"$APIKEY_ALCHEMY"'"],
-          "blst": ["https://blast-sepolia.g.alchemy.com/v2/'"$APIKEY_ALCHEMY"'"],
-          "opst": ["https://opt-sepolia.g.alchemy.com/v2/'"$APIKEY_ALCHEMY"'"],
-          "unit": ["https://unichain-sepolia.g.alchemy.com/v2/'"$APIKEY_ALCHEMY"'"]
-        }'
-        ;;
-    3)
-        echo "🔌 Menggunakan BlockPI RPC"
-        echo "Masukkan API Key atau URL lengkap untuk masing-masing jaringan:"
-        read -p "🔑 l2rn: " BLOCKPI_L2RN
-        read -p "🔑 arbitrum-sepolia: " BLOCKPI_ARBT
-        read -p "🔑 base-sepolia: " BLOCKPI_BAST
-        read -p "🔑 blast-sepolia: " BLOCKPI_BLST
-        read -p "🔑 optimism-sepolia: " BLOCKPI_OPST
-        read -p "🔑 unichain-sepolia: " BLOCKPI_UNIT
+    map_rpc_key() {
+        local url=$1
+        case $url in
+            *t3rn-b2n*) echo "l2rn" ;;
+            *arbitrum*) echo "arbt" ;;
+            *base*) echo "bast" ;;
+            *blast*) echo "blst" ;;
+            *optimism*) echo "opst" ;;
+            *unichain*) echo "unit" ;;
+            *) echo "unknown" ;;
+        esac
+    }
 
-        RPC_ENDPOINTS='{
-        "l2rn": ["'"$(build_rpc_url "$BLOCKPI_L2RN" "t3rn-b2n")"'"],
-        "arbt": ["'"$(build_rpc_url "$BLOCKPI_ARBT" "arbitrum-sepolia")"'"],
-        "bast": ["'"$(build_rpc_url "$BLOCKPI_BAST" "base-sepolia")"'"],
-        "blst": ["'"$(build_rpc_url "$BLOCKPI_BLST" "blast-sepolia")"'"],
-        "opst": ["'"$(build_rpc_url "$BLOCKPI_OPST" "optimism-sepolia")"'"],
-        "unit": ["'"$(build_rpc_url "$BLOCKPI_UNIT" "unichain-sepolia")"'"]
-        }'
+    RPC_ENDPOINTS="{"
+    for url in "${BLOCKPI_URLS[@]}"; do
+        key=$(map_rpc_key "$url")
+        if [[ "$key" != "unknown" ]]; then
+            RPC_ENDPOINTS+='"'$key'": ["'$url'"],'
+        fi
+    done
+    RPC_ENDPOINTS="${RPC_ENDPOINTS%,}}"
 
-        ;;
-    *)
-        echo "❌ Pilihan tidak valid. Menggunakan Default RPC."
-        RPC_ENDPOINTS='{
-          "l2rn": ["https://t3rn-b2n.blockpi.network/v1/rpc/public", "http://b2n.rpc.caldera.xyz/http"],
-          "arbt": ["https://arbitrum-sepolia.drpc.org"],
-          "bast": ["https://base-sepolia-rpc.publicnode.com"],
-          "blst": ["https://sepolia.blast.io"],
-          "opst": ["https://sepolia.optimism.io"],
-          "unit": ["https://unichain-sepolia.drpc.org"]
-        }'
-        ;;
-esac
+else
+    echo "🔌 Menggunakan Default RPC"
+    RPC_ENDPOINTS='{
+      "l2rn": ["https://t3rn-b2n.blockpi.network/v1/rpc/public", "http://b2n.rpc.caldera.xyz/http"],
+      "arbt": ["https://arbitrum-sepolia.drpc.org"],
+      "bast": ["https://base-sepolia-rpc.publicnode.com"],
+      "blst": ["https://sepolia.blast.io"],
+      "opst": ["https://sepolia.optimism.io"],
+      "unit": ["https://unichain-sepolia.drpc.org"]
+    }'
+fi
 
-
-# ====== PREPARE ============
+# ====== INSTALL SETUP ==========
 INSTALL_DIR="/home/$EXECUTOR_USER/t3rn"
 ENV_FILE="/etc/t3rn-executor.env"
 SERVICE_FILE="/etc/systemd/system/t3rn-executor.service"
@@ -104,44 +85,37 @@ EXECUTOR_VERSION="v0.61.0"
 EXECUTOR_FILE="executor-linux-$EXECUTOR_VERSION.tar.gz"
 EXECUTOR_URL="https://github.com/t3rn/executor-release/releases/download/$EXECUTOR_VERSION/$EXECUTOR_FILE"
 
-# Clean up jika ada
 sudo systemctl stop t3rn-executor.service &>/dev/null
 sudo systemctl disable t3rn-executor.service &>/dev/null
 sudo rm -rf "$INSTALL_DIR" "$ENV_FILE" "$SERVICE_FILE"
-
 mkdir -p "$INSTALL_DIR"
 cd "$INSTALL_DIR" || exit 1
 
-# ====== PROSES PARAREL ========
-
-echo "🚀 Memulai instalasi paralel..."
-
-# Download Executor
+# Parallel Tasks
 (
-    echo "🔽 Mengunduh Executor..."
-    wget -q "$EXECUTOR_URL" -O "$EXECUTOR_FILE" && \
-    tar -xzf "$EXECUTOR_FILE" && \
-    rm "$EXECUTOR_FILE"
-    echo "✅ Executor siap."
+  echo "🔻 Mengunduh Executor..."
+  wget -q "$EXECUTOR_URL" -O "$EXECUTOR_FILE" && \
+  tar -xzf "$EXECUTOR_FILE" && \
+  rm "$EXECUTOR_FILE"
+  echo "✅ Executor siap."
 ) &
 
-# Buat File ENV
 (
-    echo "⚙️ Membuat file ENV..."
-    sleep 1 
-    cat <<EOF | sudo tee "$ENV_FILE" > /dev/null
+  echo "⚙ Membuat file ENV..."
+  sleep 1
+  cat <<EOF | sudo tee "$ENV_FILE" > /dev/null
 RPC_ENDPOINTS='$RPC_ENDPOINTS'
 EXECUTOR_MAX_L3_GAS_PRICE="$GAS_PRICE"
 PRIVATE_KEY_LOCAL="$PRIVATE_KEY"
 ENABLED_NETWORKS="l2rn,arbitrum-sepolia,base-sepolia,optimism-sepolia,unichain-sepolia,blast-sepolia"
 EOF
-    sudo chmod 600 "$ENV_FILE"
-    echo "✅ ENV berhasil disimpan."
+  sudo chmod 600 "$ENV_FILE"
+  echo "✅ ENV disimpan."
 ) &
 
-wait  # Tunggu semua proses paralel selesai
+wait
 
-# Buat Service Systemd
+# ====== SYSTEMD SERVICE ======
 echo "🛠️ Membuat systemd service..."
 cat <<EOF | sudo tee "$SERVICE_FILE" > /dev/null
 [Unit]
@@ -169,24 +143,19 @@ Environment=ENABLED_NETWORKS=l2rn,arbitrum-sepolia,base-sepolia,blst-sepolia,opt
 WantedBy=multi-user.target
 EOF
 
-# Aktifkan service
 sudo systemctl daemon-reload
 sudo systemctl enable t3rn-executor.service
 sudo systemctl start t3rn-executor.service
 
-# Tampilkan status
+# Status & Log
 echo "✅ Instalasi selesai!"
 sudo systemctl status t3rn-executor.service --no-pager
-
-# Tanya apakah user ingin lihat log
-read -p "📜 Cek Log? (y/n): " SHOW_LOG
-
-if [[ "$SHOW_LOG" == "y" || "$SHOW_LOG" == "Y" ]]; then
-    echo "📡 Menampilkan log. Tekan CTRL+C untuk keluar."
+read -p "📜 Ingin melihat log realtime sekarang? (y/n): " LOG_CHOICE
+if [[ "$LOG_CHOICE" == "y" || "$LOG_CHOICE" == "Y" ]]; then
+    echo "📊 Menampilkan log... Tekan CTRL+C untuk keluar."
     sleep 1
     sudo journalctl -u t3rn-executor.service -f --no-hostname -o cat
 else
-    echo "👍 Instalasi selesai. Cek log dengan command berikut:"
-    echo "   sudo journalctl -u t3rn-executor.service -f --no-hostname -o cat"
+    echo "🔧 Kamu bisa lihat log kapan saja dengan perintah berikut:"
+    echo "    sudo journalctl -u t3rn-executor.service -f --no-hostname -o cat"
 fi
-
