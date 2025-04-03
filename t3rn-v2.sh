@@ -27,6 +27,17 @@ echo "3. BlockPI RPC"
 read -p "Masukkan pilihan (1/2/3): " RPC_CHOICE
 
 # ====== RPC ENDPOINT BASED ON CHOICE ========
+
+build_rpc_url() {
+    local input=$1
+    local network=$2
+    if [[ $input == https://* ]]; then
+        echo "$input"
+    else
+        echo "https://$network.blockpi.network/v1/rpc/$input"
+    fi
+}
+
 case $RPC_CHOICE in
     1)
         echo "🔌 Menggunakan Default RPC"
@@ -53,21 +64,23 @@ case $RPC_CHOICE in
         ;;
     3)
         echo "🔌 Menggunakan BlockPI RPC"
-        echo "Silakan masukkan API Key BlockPI untuk masing-masing jaringan:"
-        read -p "🔑 BlockPI API Key untuk l2rn: " BLOCKPI_L2RN
-        read -p "🔑 BlockPI API Key untuk arbitrum-sepolia: " BLOCKPI_ARBT
-        read -p "🔑 BlockPI API Key untuk base-sepolia: " BLOCKPI_BAST
-        read -p "🔑 BlockPI API Key untuk blast-sepolia: " BLOCKPI_BLST
-        read -p "🔑 BlockPI API Key untuk optimism-sepolia: " BLOCKPI_OPST
-        read -p "🔑 BlockPI API Key untuk unichain-sepolia: " BLOCKPI_UNIT
+        echo "Masukkan API Key atau URL lengkap untuk masing-masing jaringan:"
+        read -p "🔑 l2rn: " BLOCKPI_L2RN
+        read -p "🔑 arbitrum-sepolia: " BLOCKPI_ARBT
+        read -p "🔑 base-sepolia: " BLOCKPI_BAST
+        read -p "🔑 blast-sepolia: " BLOCKPI_BLST
+        read -p "🔑 optimism-sepolia: " BLOCKPI_OPST
+        read -p "🔑 unichain-sepolia: " BLOCKPI_UNIT
+
         RPC_ENDPOINTS='{
-          "l2rn": ["https://t3rn-b2n.blockpi.network/v1/rpc/'"$BLOCKPI_L2RN"'"],
-          "arbt": ["https://arbitrum-sepolia.blockpi.network/v1/rpc/'"$BLOCKPI_ARBT"'"],
-          "bast": ["https://base-sepolia.blockpi.network/v1/rpc/'"$BLOCKPI_BAST"'"],
-          "blst": ["https://blast-sepolia.blockpi.network/v1/rpc/'"$BLOCKPI_BLST"'"],
-          "opst": ["https://optimism-sepolia.blockpi.network/v1/rpc/'"$BLOCKPI_OPST"'"],
-          "unit": ["https://unichain-sepolia.blockpi.network/v1/rpc/'"$BLOCKPI_UNIT"'"]
+        "l2rn": ["'"$(build_rpc_url "$BLOCKPI_L2RN" "t3rn-b2n")"'"],
+        "arbt": ["'"$(build_rpc_url "$BLOCKPI_ARBT" "arbitrum-sepolia")"'"],
+        "bast": ["'"$(build_rpc_url "$BLOCKPI_BAST" "base-sepolia")"'"],
+        "blst": ["'"$(build_rpc_url "$BLOCKPI_BLST" "blast-sepolia")"'"],
+        "opst": ["'"$(build_rpc_url "$BLOCKPI_OPST" "optimism-sepolia")"'"],
+        "unit": ["'"$(build_rpc_url "$BLOCKPI_UNIT" "unichain-sepolia")"'"]
         }'
+
         ;;
     *)
         echo "❌ Pilihan tidak valid. Menggunakan Default RPC."
@@ -164,3 +177,16 @@ sudo systemctl start t3rn-executor.service
 # Tampilkan status
 echo "✅ Instalasi selesai!"
 sudo systemctl status t3rn-executor.service --no-pager
+
+# Tanya apakah user ingin lihat log
+read -p "📜 Cek Log? (y/n): " SHOW_LOG
+
+if [[ "$SHOW_LOG" == "y" || "$SHOW_LOG" == "Y" ]]; then
+    echo "📡 Menampilkan log. Tekan CTRL+C untuk keluar."
+    sleep 1
+    sudo journalctl -u t3rn-executor.service -f --no-hostname -o cat
+else
+    echo "👍 Instalasi selesai. Cek log dengan command berikut:"
+    echo "   sudo journalctl -u t3rn-executor.service -f --no-hostname -o cat"
+fi
+
