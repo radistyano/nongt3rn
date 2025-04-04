@@ -106,7 +106,7 @@ cd "$INSTALL_DIR" || exit 1
 RPC_ENDPOINTS='$RPC_ENDPOINTS'
 EXECUTOR_MAX_L3_GAS_PRICE="$GAS_PRICE"
 PRIVATE_KEY_LOCAL="$PRIVATE_KEY"
-ENABLED_NETWORKS="l2rn,arbitrum-sepolia,base-sepolia,optimism-sepolia,unichain-sepolia,blast-sepolia"
+ENABLED_NETWORKS="l2rn,arbitrum-sepolia,base-sepolia,unichain-sepolia,blast-sepolia"
 EXECUTOR_PROCESS_BIDS_ENABLED=true
 EXECUTOR_PROCESS_ORDERS_ENABLED=true
 EXECUTOR_PROCESS_CLAIMS_ENABLED=true
