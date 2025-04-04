@@ -1,4 +1,6 @@
 #!/bin/bash
+
+# ====== ASCII ART ======
 echo "
 
 .%%..%%...%%%%...%%..%%...%%%%...%%..%%..%%%%%%...........%%%%...%%%%%...%%..%%..%%%%%...%%%%%%...%%%%..
@@ -108,6 +110,12 @@ RPC_ENDPOINTS='$RPC_ENDPOINTS'
 EXECUTOR_MAX_L3_GAS_PRICE="$GAS_PRICE"
 PRIVATE_KEY_LOCAL="$PRIVATE_KEY"
 ENABLED_NETWORKS="l2rn,arbitrum-sepolia,base-sepolia,optimism-sepolia,unichain-sepolia,blast-sepolia"
+EXECUTOR_PROCESS_BIDS_ENABLED=true
+EXECUTOR_PROCESS_ORDERS_ENABLED=true
+EXECUTOR_PROCESS_CLAIMS_ENABLED=true
+EXECUTOR_PROCESS_PENDING_ORDERS_FROM_API=true
+EXECUTOR_PROCESS_ORDERS_API_ENABLED=true
+LOG_PRETTY=false
 EOF
   sudo chmod 600 "$ENV_FILE"
   echo "✅ ENV disimpan."
@@ -127,15 +135,13 @@ User=$EXECUTOR_USER
 WorkingDirectory=$INSTALL_DIR/executor/executor/bin
 ExecStart=$INSTALL_DIR/executor/executor/bin/executor
 Restart=always
-RestartSec=10
+RestartSec=3
+LimitNOFILE=65535
+LimitNPROC=10240
+CPUSchedulingPolicy=rr
 Environment=ENVIRONMENT=testnet
 Environment=LOG_LEVEL=debug
 Environment=LOG_PRETTY=false
-Environment=EXECUTOR_PROCESS_BIDS_ENABLED=true
-Environment=EXECUTOR_PROCESS_ORDERS_ENABLED=true
-Environment=EXECUTOR_PROCESS_CLAIMS_ENABLED=true
-Environment=EXECUTOR_PROCESS_PENDING_ORDERS_FROM_API=false
-Environment=EXECUTOR_PROCESS_ORDERS_API_ENABLED=false
 EnvironmentFile=$ENV_FILE
 Environment=ENABLED_NETWORKS=l2rn,arbitrum-sepolia,base-sepolia,blst-sepolia,optimism-sepolia,unichain-sepolia
 
