@@ -8,7 +8,7 @@ echo "
 .%%.%%%..%%..%%..%%.%%%..%%.%%%..%%%%......%%............%%......%%%%%.....%%....%%%%%.....%%....%%..%%.
 .%%..%%..%%..%%..%%..%%..%%..%%..%%.%%.....%%............%%..%%..%%..%%....%%....%%........%%....%%..%%.
 .%%..%%...%%%%...%%..%%...%%%%...%%..%%..%%%%%%...........%%%%...%%..%%....%%....%%........%%.....%%%%..
-........................................................................................................
+
 "
 
 # ====== INPUT ============
@@ -33,7 +33,6 @@ if [[ "$RPC_CHOICE" == "2" ]]; then
       "arbt": ["https://arbitrum-sepolia.g.alchemy.com/v2/'"$APIKEY_ALCHEMY"'"] ,
       "bast": ["https://base-sepolia.g.alchemy.com/v2/'"$APIKEY_ALCHEMY"'"] ,
       "blst": ["https://blast-sepolia.g.alchemy.com/v2/'"$APIKEY_ALCHEMY"'"] ,
-      "opst": ["https://opt-sepolia.g.alchemy.com/v2/'"$APIKEY_ALCHEMY"'"] ,
       "unit": ["https://unichain-sepolia.g.alchemy.com/v2/'"$APIKEY_ALCHEMY"'"] 
     }'
 
@@ -52,7 +51,6 @@ elif [[ "$RPC_CHOICE" == "3" ]]; then
             *arbitrum*) echo "arbt" ;;
             *base*) echo "bast" ;;
             *blast*) echo "blst" ;;
-            *optimism*) echo "opst" ;;
             *unichain*) echo "unit" ;;
             *) echo "unknown" ;;
         esac
@@ -74,7 +72,6 @@ else
       "arbt": ["https://arbitrum-sepolia.drpc.org"],
       "bast": ["https://base-sepolia-rpc.publicnode.com"],
       "blst": ["https://sepolia.blast.io"],
-      "opst": ["https://sepolia.optimism.io"],
       "unit": ["https://unichain-sepolia.drpc.org"]
     }'
 fi
@@ -135,7 +132,7 @@ User=$EXECUTOR_USER
 WorkingDirectory=$INSTALL_DIR/executor/executor/bin
 ExecStart=$INSTALL_DIR/executor/executor/bin/executor
 Restart=always
-RestartSec=3
+RestartSec=5
 LimitNOFILE=65535
 LimitNPROC=10240
 CPUSchedulingPolicy=rr
@@ -143,7 +140,7 @@ Environment=ENVIRONMENT=testnet
 Environment=LOG_LEVEL=debug
 Environment=LOG_PRETTY=false
 EnvironmentFile=$ENV_FILE
-Environment=ENABLED_NETWORKS=l2rn,arbitrum-sepolia,base-sepolia,blst-sepolia,optimism-sepolia,unichain-sepolia
+Environment=ENABLED_NETWORKS=l2rn,arbitrum-sepolia,base-sepolia,blst-sepolia,unichain-sepolia
 
 [Install]
 WantedBy=multi-user.target
